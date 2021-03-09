@@ -41,3 +41,33 @@ Run as docker container:
 ```
 docker run -d --name=grafana -p 3000:3000 grafana/grafana
 ```
+
+Connect grafana to local TimescaleDB server:
+* In broser open http://localhost:3000/
+* Go to Configuration -> Data Sources
+* Select PostgreSQL
+* Enter the data as shown in the following figure
+![](figures/GrafanaSetup.png)
+
+> The password needs to fit the value of POSTGRES_PASSWORD from [TimescaleDB Server](#TimescaleDB-Server)
+
+> The ip adress from docker interface docker0 needs to be entered as host ip adress
+
+Insert data into Grafana panel:
+* Go to Create -> Dashboard
+* Click on `Add new panel`
+* Check selected data sourse is `adsdata`
+* Click on the pen next on the right side of the A query to toggle to text mode
+* Enter the following to show the course of the parameter counter
+  ```
+  SELECT
+    "time" AS "time",
+    ((data->>'counter')::numeric) as values
+  FROM adsdata
+  WHERE
+    $__timeFilter("time")
+  ORDER BY 1
+  ```
+
+Example output:
+![](figures/ExampleGraph.png)

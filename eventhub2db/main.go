@@ -83,7 +83,8 @@ func main() {
 			"organic": true,
 			"dimensions": {
 				"weight": 1000.00
-			}
+			},
+			"counter": 3
 		}`,
 	}
 
