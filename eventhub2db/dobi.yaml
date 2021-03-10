@@ -1,0 +1,48 @@
+# ===================================================
+# mounts
+# ===================================================
+mount=mount-eventhub2db-src:
+  bind: "."
+  path: "/src"
+  read-only: false
+
+mount=mount-eventhub2db-bin:
+  bind: "bin/"
+  path: "/install"
+  read-only: false
+
+# ===================================================
+# jobs
+# ===================================================
+
+job=build-eventhub2db:
+  use: image-go-builder
+  command: bash -c 'cd /src/eventhub2db && make -j${nproc}'
+  mounts:
+    - mount-eventhub2db-src
+    - mount-eventhub2db-bin
+    - mount-go-pkg
+  sources:
+    - eventhub2db
+  artifact:
+    - bin/eventhub2db
+  user: "{user.uid}:{user.gid}"
+  env:
+    - VERSION={env.GitVersion_Sha}
+    - BIN_DIR=/install
+    - GOCACHE=/tmp/cache
+  annotations:
+    description: "-> build eventhub2db"
+    tags:
+      - build
+
+image=image-eventhub2db:
+  image: "{env.EVENTHUB2DB_REPO:ci4rail/kyt/eventhub2db}"
+  context: "."
+  dockerfile: eventhub2db/Dockerfile
+  tags:
+    - "{env.GitVersion_InformationalVersion}"
+  args:
+    VERSION: "{env.GitVersion_Sha}"
+  annotations:
+    description: "-> build eventhub2db docker image"

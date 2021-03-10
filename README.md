@@ -1,15 +1,60 @@
 # ads-demo-environment
-This repository contains the components of ads-demo-environment including their deplyoment to aks.
+[![CI](https://concourse.ci4rail.com/api/v1/teams/main/pipelines/ads-demo-environment/jobs/build-ads-demo-environment/badge)](https://concourse.ci4rail.com/teams/main/pipelines/ads-demo-environment) [![Go Report Card](https://goreportcard.com/badge/github.com/ci4rail/ads-demo-environment)](https://goreportcard.com/report/github.com/ci4rail/ads-demo-environment)
 
-## Test environment
-### TimescaleDB Server
+This repository contains the components of ads-demo-environment, build environment and CI/CD pipeline and their deplyoment to aks.
+
+# Build
+Here you can find the build instructions for either locally with and without docker and via the CI/CD pipeline.
+
+## Build locally
+
+### eventhub2db
+
+#### Docker image
+
+To build (and deploy) the `eventhub2db` docker image you can use the following commands:
+```bash
+$ ./dobi.sh image-eventhub2db        # build only
+$ ./dobi.sh image-eventhub2db:push   # build and push do docker registry
+```
+
+To run the docker image with a specific `<tag>` use:
+```bash
+docker run --rm -e EVENTHUB_CONNECTIONSTRING="Endpoint=sb://testing-ns4tenant2.servicebus.windows.net/;SharedAccessKeyName=ar4tenant2;SharedAccessKey=A...;EntityPath=eh4tenant2" harbor.ci4rail.com/ci4rail/kyt/kyt-dlm-server:<tag>
+```
+Have a look at available tags for the image: https://harbor.ci4rail.com/harbor/projects/7/repositories/kyt%2Feventhub2db
+
+#### Plain binary
+
+Containerized Build of the kyt-dlm-server tool. Builds x86 version for linux.
+
+```bash
+$ ./dobi.sh build-kyt-dlm-server
+```
+
+Run the kyt-dlm-server:
+
+```bash
+$ export EVENTHUB_CONNECTIONSTRING="Endpoint=sb://testing-ns4tenant2.servicebus.windows.net/;SharedAccessKeyName=ar4tenant2;SharedAccessKey=A...;EntityPath=eh4tenant2"
+$ bin/kyt-dlm-server --addr :8080
+```
+
+Or, build/run it with your local go installation:
+
+```bash
+$ cd kyt-dlm-server
+$ go run main.go  --addr :8080
+```
+
+# Test environment
+## TimescaleDB Server
 
 Start server with
 ```
 docker run -d --name timescaledb -p 5432:5432 -e POSTGRES_PASSWORD=password timescale/timescaledb:2.1.0-pg13
 ```
 
-### TimescaleDb Go Client
+## TimescaleDb Go Client
 Run local go program to
 * Extend the database with TimescaleDB (if not happed before)
 * Create table if not exists
@@ -25,7 +70,7 @@ Execute it
 go run main.go
 ```
 
-### TimescaleDB Docker Client
+## TimescaleDB Docker Client
 Run interactive client in docker container and connect to PostgreSQL, using a superuser named 'postgres':
 ```
 docker exec -it timescaledb psql -U postgres

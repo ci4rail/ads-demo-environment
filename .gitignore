@@ -1,0 +1,14 @@
+#general
+gen
+bin
+build
+
+#dobi build tool
+.dobi
+
+.vscode
+
+TODO
+
+#credential files
+*/.env
