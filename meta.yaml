@@ -7,6 +7,7 @@ meta:
     - dobi.yaml
     - version.yaml
     - eventhub2db/dobi.yaml
+    - grafana/dobi.yaml
 
 # ===================================================
 # alias
@@ -16,6 +17,7 @@ alias=build:
   tasks:
     - build-eventhub2db
     - image-eventhub2db
+    - image-grafana
   annotations:
     description: "[alias] build all"
     tags:
@@ -24,6 +26,7 @@ alias=build:
 alias=deploy:
   tasks:
     - image-eventhub2db:push
+    - image-grafana:push
   annotations:
     description: "[alias] push all"
     tags:
