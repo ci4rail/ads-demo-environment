@@ -53,7 +53,29 @@ job=deploy-eventhubdb:
              cat /deployment/eventhub2db.yaml.tmpl | \
              sed -e "s|TENANT|$TENANT|" | \
              sed -e "s|EVENTHUB2DB_IMAGE|$EVENTHUB2DB_IMAGE|" | \
-             kubectl apply -f -'
+             sed -e "s|GRAFANA|$GRAFANA|" | \
+             kubectl apply --namespace=$TENANT -f -'
+  mounts:
+    - mount-kubeconfig-testing-aks
+    - mount-deployment-dir
+  user: "{user.uid}:{user.gid}"
+  entrypoint: ""
+  env:
+    - DOCKER_REGISTRY={env.DOCKER_REGISTRY}
+    - TENANT={env.TENANT}
+    - EVENTHUB2DB_IMAGE={env.EVENTHUB2DB_IMAGE}
+    - GRAFANA={env.GRAFANA}
+  annotations:
+    description: "-> deploy eventhu2db to azure kubernetes service"
+    tags:
+      - deploy
+
+job=deploy-grafana-secret:
+  use: image-kubectl
+  command: |
+    bash -c 'source /deployment/.env &&
+             kubectl create namespace $TENANT --dry-run=client -o yaml | kubectl apply -f - &&
+             kubectl apply -f /deployment/grafana-tls-secret.yaml'
   mounts:
     - mount-kubeconfig-testing-aks
     - mount-deployment-dir

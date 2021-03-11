@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: eventhub2db
-  namespace: TENANT
 spec:
   replicas: 1
   selector:
@@ -46,7 +45,7 @@ spec:
             - name: POSTGRES_PASSWORD
               value: "password"
         - name: grafana
-          image: grafana/grafana:7.4.3
+          image: harbor.ci4rail.com/ci4rail/grafana:7.4.3
           resources:
             requests:
               cpu: 100m
@@ -63,34 +62,32 @@ apiVersion: v1
 kind: Service
 metadata:
   name: grafana-service
-  namespace: TENANT
 spec:
   type: ClusterIP
   ports:
     - port: 3000
   selector:
-    app: grafana
+    app: eventhub2db
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: grafana-ingress
-  namespace: TENANT
   annotations:
     kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-production
+    cert-manager.io/cluster-issuer: letsencrypt-staging
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   tls:
     - hosts:
-        - grafana.ci4rail.com
+        - GRAFANA.edgefarm.io
       secretName: grafana-tls-secret
   rules:
-    - host: grafana.ci4rail.com
+    - host: GRAFANA.edgefarm.io
       http:
         paths:
-          - path: /TENANT
+          - path: /
             pathType: Prefix
             backend:
               service:
@@ -102,12 +99,11 @@ apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: grafana-tls-secret
-  namespace: TENANT
 spec:
   secretName: grafana-tls-secret
   dnsNames:
-    - grafana.ci4rail.com
-  commonName: grafana.ci4rail.com
+    - GRAFANA.edgefarm.io
+  commonName: GRAFANA.edgefarm.io
   issuerRef:
-    name: letsencrypt-production
+    name: letsencrypt-staging
     kind: ClusterIssuer
