@@ -17,7 +17,6 @@ limitations under the License.
 package cmd
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -27,14 +26,14 @@ import (
 	"time"
 
 	eventhub "github.com/Azure/azure-event-hubs-go/v3"
+	"github.com/ci4rail/ads-demo-environment/eventhub2db/internal/avro"
 	e "github.com/ci4rail/ads-demo-environment/eventhub2db/internal/eventhub"
 	tdb "github.com/ci4rail/ads-demo-environment/eventhub2db/internal/timescaledb"
-	"github.com/linkedin/goavro"
 	"github.com/spf13/cobra"
 )
 
 const (
-	defaultDbConnStr = "postgresql://postgres:password@172.17.0.1:5432/postgres"
+	defaultDbConnStr = "postgresql://postgres:password@localhost:5432/postgres"
 )
 
 var (
@@ -73,35 +72,30 @@ var rootCmd = &cobra.Command{
 		defer cancel()
 
 		handler := func(c context.Context, event *eventhub.Event) error {
-			ocfr, err := goavro.NewOCFReader(bytes.NewReader(event.Data))
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-			r := ocfr.Codec().Schema()
-			readCodec, err := goavro.NewCodec(r)
-			if err != nil {
-				log.Fatalln(err)
-			}
-			m := make(map[string]interface{})
-			for ocfr.Scan() {
-				datum, _ := ocfr.Read()
-				m = datum.(map[string]interface{})
-			}
-
 			// Output as direct access
 			fmt.Println("Reading...")
 			fmt.Println("Received data:")
 			fmt.Println(event.Data)
 			fmt.Println()
-			fmt.Println("Decoded data:")
+
+			avro, err := avro.NewAvroReader(event.Data)
+			if err != nil {
+				return err
+			}
+
+			m, err := avro.AvroToMap()
+			if err != nil {
+				return err
+			}
 
 			// Output as json
-			jbytes, err := readCodec.TextualFromNative(nil, m)
+			jbytes, err := avro.AvroToByteString()
 			if err != nil {
 				log.Fatalln(err)
 			}
-			fmt.Println(string(jbytes))
+			fmt.Println("Decoded data as JSON:")
+			fmt.Println(avro.AvroToJson())
+			fmt.Println("Decoded single fields:")
 			fmt.Println("device: " + m["device"].(string))
 			fmt.Println("acqTime: ", time.Unix(int64(m["acqTime"].(int32)), 0))
 			fmt.Println()
@@ -122,7 +116,7 @@ var rootCmd = &cobra.Command{
 
 			data, err := json.Marshal(i)
 			if err != nil {
-				panic(err)
+				return err
 			}
 			fmt.Println("Removed timestamp and device id from json:")
 			fmt.Println(string(data))
@@ -137,8 +131,7 @@ var rootCmd = &cobra.Command{
 
 			err = dbConn.Write(entry)
 			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
+				return err
 			} else {
 				fmt.Println("Successfully wrote into db:")
 				fmt.Println(entry)
