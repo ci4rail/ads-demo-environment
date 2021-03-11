@@ -51,7 +51,10 @@ func (a *Avro) AvroToByteString() ([]byte, error) {
 func (a *Avro) AvroToMap() (map[string]interface{}, error) {
 	m := make(map[string]interface{})
 	for a.ocfr.Scan() {
-		datum, _ := a.ocfr.Read()
+		datum, err := a.ocfr.Read()
+		if err != nil {
+			return nil, err
+		}
 		m = datum.(map[string]interface{})
 	}
 	return m, nil
