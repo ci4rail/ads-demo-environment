@@ -37,12 +37,10 @@ func (a *Avro) AvroToJson() (string, error) {
 }
 
 func (a *Avro) AvroToByteString() ([]byte, error) {
-	m := make(map[string]interface{})
-	for a.ocfr.Scan() {
-		datum, _ := a.ocfr.Read()
-		m = datum.(map[string]interface{})
+	m, err := a.AvroToMap()
+	if err != nil {
+		return nil, err
 	}
-
 	jbytes, err := a.codec.TextualFromNative(nil, m)
 	if err != nil {
 		return nil, err
