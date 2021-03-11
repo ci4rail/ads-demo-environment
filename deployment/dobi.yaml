@@ -1,0 +1,85 @@
+# ===================================================
+# images
+# ===================================================
+image=image-azure-cli:
+  image: mcr.microsoft.com/azure-cli
+  tags: ["2.17.1"]
+  pull: once
+
+image=image-kubectl:
+  image: bitnami/kubectl
+  tags: ["1.20.2"]
+  pull: once
+
+# ===================================================
+# mounts
+# ===================================================
+# Read only is not possible as azure continuously changes stuff within this directory.
+mount=mount-azure-dir:
+  bind: "{user.home}/.azure"
+  path: "/.azure"
+  read-only: false
+
+mount=mount-kubeconfig-testing-aks:
+  bind: "{user.home}/.kube/config-testing-aks"
+  path: "/.kube"
+  read-only: false
+
+mount=mount-deployment-dir:
+  bind: "deployment"
+  path: "/deployment"
+  read-only: true
+
+# ===================================================
+# jobs
+# ===================================================
+job=deploy-eventhubdb:
+  use: image-kubectl
+  command: |
+    bash -c 'source /deployment/.env &&
+             kubectl create namespace $TENANT --dry-run=client -o yaml | kubectl apply -f - &&
+             kubectl delete secret ci4rail-harbor-secret --namespace=$TENANT --ignore-not-found &&
+             kubectl create secret docker-registry ci4rail-harbor-secret \
+                                                   --namespace=$TENANT \
+                                                   --docker-server=$DOCKER_REGISTRY \
+                                                   --docker-username=$DOCKER_REGISTRY_USERNAME \
+                                                   --docker-password=$DOCKER_REGISTRY_PASSWORD \
+                                                   --validate=true &&
+             kubectl delete secret connectionstring  --namespace=$TENANT --ignore-not-found &&
+             kubectl create secret generic connectionstring \
+                                                   --namespace=$TENANT \
+                                                   --from-literal=eventhubConn=$EVENTHUB_CONNECTIONSTRING &&
+
+             cat /deployment/eventhub2db.yaml.tmpl | \
+             sed -e "s|TENANT|$TENANT|" | \
+             sed -e "s|EVENTHUB2DB_IMAGE|$EVENTHUB2DB_IMAGE|" | \
+             kubectl apply -f -'
+  mounts:
+    - mount-kubeconfig-testing-aks
+    - mount-deployment-dir
+  user: "{user.uid}:{user.gid}"
+  entrypoint: ""
+  env:
+    - DOCKER_REGISTRY={env.DOCKER_REGISTRY}
+    - TENANT={env.TENANT}
+    - EVENTHUB2DB_IMAGE={env.EVENTHUB2DB_IMAGE}
+  annotations:
+    description: "-> deploy eventhu2db to azure kubernetes service"
+    tags:
+      - deploy
+
+job=get-aks-config:
+  use: image-azure-cli
+  command: |
+    bash -c 'rm /.kube/config;
+             az aks get-credentials --resource-group $AZURE_RESOURCE_GROUP --name $AKS_NAME'
+  interactive: true
+  mounts:
+    - mount-kubeconfig-testing-aks
+    - mount-azure-dir
+  env:
+    - AZURE_RESOURCE_GROUP={env.AZURE_RESOURCE_GROUP}
+    - AKS_NAME={env.AKS_NAME}
+  user: "{user.uid}:{user.gid}"
+  annotations:
+    description: "-> get azure kubernetes service kubeconfig"

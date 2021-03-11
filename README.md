@@ -76,7 +76,7 @@ The `pipeline-pullrequests.yaml` defines a pipeline that runs basic quality chec
 
 ### Usage
 
-Copy `ci/credentials-pullrequests.template.yaml` to `ci/credentials-pullrequests.yaml` and enter the Github `access_token` with `read` rights and enter the `webhook_token` key, you want to use (`yoda-ci4rail github pullrequest token` from bitwarden can be used).
+Copy `ci/credentials-pullrequests.template.yaml` to `ci/credentials-pullrequests.yaml` and enter the Github `access_token` with `read` rights and enter the `webhook_token` key, you want to use (`access_token` can be found in `yoda-ci4rail github token` from bitwarden).
 Configure a Webhook on github using this URL and the same webhook_token:
 `https://concourse.ci4rail.com/api/v1/teams/main/pipelines/kyt-services-pull-requests/resources/pull-request/check/webhook?webhook_token=<webhook_token>`
 
