@@ -20,29 +20,29 @@ $ ./dobi.sh image-eventhub2db:push   # build and push do docker registry
 
 To run the docker image with a specific `<tag>` use:
 ```bash
-docker run --rm -e EVENTHUB_CONNECTIONSTRING="Endpoint=sb://testing-ns4tenant2.servicebus.windows.net/;SharedAccessKeyName=ar4tenant2;SharedAccessKey=A...;EntityPath=eh4tenant2" harbor.ci4rail.com/ci4rail/kyt/kyt-dlm-server:<tag>
+docker run --rm -e EVENTHUB_CONNECTIONSTRING="Endpoint=sb://testing-ns4tenant2.servicebus.windows.net/;SharedAccessKeyName=ar4tenant2;SharedAccessKey=A...;EntityPath=eh4tenant2" harbor.ci4rail.com/ci4rail/kyt/eventhub2db:<tag>
 ```
 Have a look at available tags for the image: https://harbor.ci4rail.com/harbor/projects/7/repositories/kyt%2Feventhub2db
 
 #### Plain binary
 
-Containerized Build of the kyt-dlm-server tool. Builds x86 version for linux.
+Containerized Build of the eventhub2db tool. Builds x86 version for linux.
 
 ```bash
-$ ./dobi.sh build-kyt-dlm-server
+$ ./dobi.sh build-eventhub2db
 ```
 
-Run the kyt-dlm-server:
+Run the eventhub2db:
 
 ```bash
 $ export EVENTHUB_CONNECTIONSTRING="Endpoint=sb://testing-ns4tenant2.servicebus.windows.net/;SharedAccessKeyName=ar4tenant2;SharedAccessKey=A...;EntityPath=eh4tenant2"
-$ bin/kyt-dlm-server --addr :8080
+$ bin/eventhub2db --addr :8080
 ```
 
 Or, build/run it with your local go installation:
 
 ```bash
-$ cd kyt-dlm-server
+$ cd eventhub2db
 $ go run main.go  --addr :8080
 ```
 
@@ -72,7 +72,7 @@ $ fly -t prod set-pipeline -p ads-demo-environment -c pipeline.yaml -l ci/config
 
 ## pipeline-pullrequests.yaml
 
-The `pipeline-pullrequests.yaml` defines a pipeline that runs basic quality checks on pull requests. For this, consourse checks Github for new or changed pull requests If a change is found, it downloads the branch and performs a clean build of kyt-cli `kyt` and `kyt-dlm-server` go binaries. It also runs go test for both.
+The `pipeline-pullrequests.yaml` defines a pipeline that runs basic quality checks on pull requests. For this, consourse checks Github for new or changed pull requests If a change is found, it downloads the branch and performs a clean build of kyt-cli `kyt` and `eventhub2db` go binaries. It also runs go test for both.
 
 ### Usage
 
