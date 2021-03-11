@@ -1,0 +1,12 @@
+# ===================================================
+# images
+# ===================================================
+
+image=image-grafana:
+  image: "{env.GRAFANA_REPO:ci4rail/grafana}"
+  context: "."
+  dockerfile: grafana/Dockerfile
+  tags:
+    - "7.4.3"
+  annotations:
+    description: "-> build grafana docker image"

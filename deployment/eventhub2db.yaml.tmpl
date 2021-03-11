@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventhub2db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventhub2db
+  template:
+    metadata:
+      labels:
+        app: eventhub2db
+    spec:
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      containers:
+        - name: eventhub2db
+          image: EVENTHUB2DB_IMAGE
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          env:
+            - name: EVENTHUB_CONNECTIONSTRING
+              valueFrom:
+                secretKeyRef:
+                  name: connectionstring
+                  key: eventhubConn
+        - name: timescaledb
+          image: timescale/timescaledb:2.1.0-pg13
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_PASSWORD
+              value: "password"
+        - name: grafana
+          image: harbor.ci4rail.com/ci4rail/grafana:7.4.3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          ports:
+            - containerPort: 3000
+      imagePullSecrets:
+        - name: ci4rail-harbor-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+  selector:
+    app: eventhub2db
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  tls:
+    - hosts:
+        - GRAFANA.edgefarm.io
+      secretName: grafana-tls-secret
+  rules:
+    - host: GRAFANA.edgefarm.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana-service
+                port:
+                  number: 3000
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: grafana-tls-secret
+spec:
+  secretName: grafana-tls-secret
+  dnsNames:
+    - GRAFANA.edgefarm.io
+  commonName: GRAFANA.edgefarm.io
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer

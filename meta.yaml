@@ -1,0 +1,43 @@
+# ===================================================
+# meta infos
+# ===================================================
+meta:
+  project: kyt
+  include:
+    - dobi.yaml
+    - version.yaml
+    - eventhub2db/dobi.yaml
+    - grafana/dobi.yaml
+    - deployment/dobi.yaml
+
+# ===================================================
+# alias
+# ===================================================
+
+alias=build:
+  tasks:
+    - build-eventhub2db
+    - image-eventhub2db
+    - image-grafana
+  annotations:
+    description: "[alias] build all"
+    tags:
+      - alias
+
+alias=deploy:
+  tasks:
+    - image-eventhub2db:push
+    - image-grafana:push
+  annotations:
+    description: "[alias] push all"
+    tags:
+      - alias
+
+alias=deploy-aks:
+  tasks:
+    - get-aks-config
+    - deploy-eventhubdb
+  annotations:
+    description: "[alias] push all to aks"
+    tags:
+      - alias

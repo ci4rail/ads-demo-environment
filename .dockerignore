@@ -1,0 +1,12 @@
+ci
+pipeline.yaml
+dobi.sh
+.pre-commit-config.yaml
+version.yaml
+dobi.yaml
+meta.yaml
+.dobi
+bin
+.gitignore
+default.env
+*.md
