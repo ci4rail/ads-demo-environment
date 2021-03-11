@@ -82,7 +82,6 @@ var rootCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-
 			m, err := avro.AvroToMap()
 			if err != nil {
 				return err
@@ -102,7 +101,7 @@ var rootCmd = &cobra.Command{
 
 			// Remove the timestamp and the device id from json
 			var i interface{}
-			if err := json.Unmarshal([]byte(string(jbytes)), &i); err != nil {
+			if err := json.Unmarshal(jbytes, &i); err != nil {
 				panic(err)
 			}
 			if m2, ok := i.(map[string]interface{}); ok {
