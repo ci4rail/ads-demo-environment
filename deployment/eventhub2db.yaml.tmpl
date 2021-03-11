@@ -68,6 +68,7 @@ spec:
   type: ClusterIP
   ports:
     - port: 3000
+      nodePort: null
   selector:
     app: grafana
 ---
@@ -78,7 +79,7 @@ metadata:
   namespace: TENANT
   annotations:
     kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-production
+    cert-manager.io/cluster-issuer: letsencrypt-staging
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
@@ -109,5 +110,5 @@ spec:
     - grafana.ci4rail.com
   commonName: grafana.ci4rail.com
   issuerRef:
-    name: letsencrypt-production
+    name: letsencrypt-staging
     kind: ClusterIssuer
