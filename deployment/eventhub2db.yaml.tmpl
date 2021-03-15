@@ -1,3 +1,32 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: timescaledb-pv-volume
+  labels:
+    app: eventhub2db
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/var/lib/postgresql"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: eventhub2db
+  name: timescaledb-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,6 +41,13 @@ spec:
       labels:
         app: eventhub2db
     spec:
+      volumes:
+        - name: postgres-pv-claim
+          persistentVolumeClaim:
+            claimName: timescaledb-pv-claim
+        - configMap:
+            name: grafana-config
+          name: grafana-config
       nodeSelector:
         "beta.kubernetes.io/os": linux
       containers:
@@ -44,6 +80,9 @@ spec:
           env:
             - name: POSTGRES_PASSWORD
               value: "password"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-pv-claim
         - name: grafana
           image: harbor.ci4rail.com/ci4rail/grafana:7.4.3
           resources:
@@ -55,6 +94,19 @@ spec:
               memory: 256Mi
           ports:
             - containerPort: 3000
+          volumeMounts:
+            - mountPath: /etc/grafana/provisioning/datasources/timescaledb-datasource.yml
+              name: grafana-config
+              readOnly: true
+              subPath: timescaledb-datasource.yml
+            - mountPath: /etc/grafana/provisioning/dashboards/grafana-dashboard-provider.yml
+              name: grafana-config
+              readOnly: true
+              subPath: grafana-dashboard-provider.yml
+            - mountPath: /var/lib/grafana/dashboards/gps-demo-dashboard.json
+              name: grafana-config
+              readOnly: true
+              subPath: gps-demo-dashboard.json
       imagePullSecrets:
         - name: ci4rail-harbor-secret
 ---
@@ -68,6 +120,19 @@ spec:
     - port: 3000
   selector:
     app: eventhub2db
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-tls-secret
+spec:
+  secretName: grafana-tls-secret
+  dnsNames:
+    - GRAFANA.edgefarm.io
+  commonName: GRAFANA.edgefarm.io
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -94,16 +159,3 @@ spec:
                 name: grafana-service
                 port:
                   number: 3000
----
-apiVersion: cert-manager.io/v1alpha2
-kind: Certificate
-metadata:
-  name: grafana-tls-secret
-spec:
-  secretName: grafana-tls-secret
-  dnsNames:
-    - GRAFANA.edgefarm.io
-  commonName: GRAFANA.edgefarm.io
-  issuerRef:
-    name: letsencrypt-staging
-    kind: ClusterIssuer
