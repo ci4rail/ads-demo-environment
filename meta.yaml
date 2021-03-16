@@ -36,7 +36,7 @@ alias=deploy:
 alias=deploy-aks:
   tasks:
     - get-aks-config
-    - deploy-eventhubdb
+    - deploy-eventhubdb-all
   annotations:
     description: "[alias] push all to aks"
     tags:

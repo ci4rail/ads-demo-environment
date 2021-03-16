@@ -33,28 +33,29 @@ mount=mount-deployment-dir:
 # ===================================================
 # jobs
 # ===================================================
-job=deploy-eventhubdb:
+job=deploy-eventhubdb-tenant1:
   use: image-kubectl
   command: |
     bash -c 'source /deployment/.env &&
-             kubectl create namespace $TENANT --dry-run=client -o yaml | kubectl apply -f - &&
-             kubectl delete secret ci4rail-harbor-secret --namespace=$TENANT --ignore-not-found &&
+             kubectl create namespace ${TENANT} --dry-run=client -o yaml | kubectl apply -f - &&
+             kubectl delete secret ci4rail-harbor-secret --namespace=${TENANT} --ignore-not-found &&
              kubectl create secret docker-registry ci4rail-harbor-secret \
-                                                   --namespace=$TENANT \
-                                                   --docker-server=$DOCKER_REGISTRY \
-                                                   --docker-username=$DOCKER_REGISTRY_USERNAME \
-                                                   --docker-password=$DOCKER_REGISTRY_PASSWORD \
+                                                   --namespace=${TENANT} \
+                                                   --docker-server=${DOCKER_REGISTRY} \
+                                                   --docker-username=${DOCKER_REGISTRY_USERNAME} \
+                                                   --docker-password=${DOCKER_REGISTRY_PASSWORD} \
                                                    --validate=true &&
-             kubectl delete secret connectionstring  --namespace=$TENANT --ignore-not-found &&
+             kubectl delete secret connectionstring  --namespace=${TENANT} --ignore-not-found &&
              kubectl create secret generic connectionstring \
-                                                   --namespace=$TENANT \
-                                                   --from-literal=eventhubConn=$EVENTHUB_CONNECTIONSTRING &&
+                                                   --namespace=${TENANT} \
+                                                   --from-literal=eventhubConn=${EVENTHUB_CONNECTIONSTRING} &&
 
              cat /deployment/eventhub2db.yaml.tmpl | \
-             sed -e "s|TENANT|$TENANT|" | \
-             sed -e "s|EVENTHUB2DB_IMAGE|$EVENTHUB2DB_IMAGE|" | \
-             sed -e "s|GRAFANA|$GRAFANA|" | \
-             kubectl apply --namespace=$TENANT -f -'
+             sed -e "s|TENANT|${TENANT}|" | \
+             sed -e "s|TEMPLATE_VAR_AUTH_CLIENT_SECRET|${AUTH_CLIENT_SECRET}|" | \
+             sed -e "s|EVENTHUB2DB_IMAGE|${EVENTHUB2DB_IMAGE}|" | \
+             sed -e "s|GRAFANA|${GRAFANA}|" | \
+             kubectl apply --namespace=${TENANT} -f -'
   mounts:
     - mount-kubeconfig-testing-aks
     - mount-deployment-dir
@@ -62,13 +63,60 @@ job=deploy-eventhubdb:
   entrypoint: ""
   env:
     - DOCKER_REGISTRY={env.DOCKER_REGISTRY}
-    - TENANT={env.TENANT}
+    - TENANT=tenant1
     - EVENTHUB2DB_IMAGE={env.EVENTHUB2DB_IMAGE}
     - GRAFANA={env.GRAFANA}
   annotations:
-    description: "-> deploy eventhu2db to azure kubernetes service"
+    description: "-> deploy eventhu2db to azure kubernetes service for tenant1"
     tags:
       - deploy
+
+job=deploy-eventhubdb-tenant2:
+  use: image-kubectl
+  command: |
+    bash -c 'source /deployment/.env &&
+             kubectl create namespace ${TENANT} --dry-run=client -o yaml | kubectl apply -f - &&
+             kubectl delete secret ci4rail-harbor-secret --namespace=${TENANT} --ignore-not-found &&
+             kubectl create secret docker-registry ci4rail-harbor-secret \
+                                                   --namespace=${TENANT} \
+                                                   --docker-server=${DOCKER_REGISTRY} \
+                                                   --docker-username=${DOCKER_REGISTRY_USERNAME} \
+                                                   --docker-password=${DOCKER_REGISTRY_PASSWORD} \
+                                                   --validate=true &&
+             kubectl delete secret connectionstring  --namespace=${TENANT} --ignore-not-found &&
+             kubectl create secret generic connectionstring \
+                                                   --namespace=${TENANT} \
+                                                   --from-literal=eventhubConn=${EVENTHUB_CONNECTIONSTRING} &&
+
+             cat /deployment/eventhub2db.yaml.tmpl | \
+             sed -e "s|TENANT|${TENANT}|" | \
+             sed -e "s|TEMPLATE_VAR_AUTH_CLIENT_SECRET|${AUTH_CLIENT_SECRET}|" | \
+             sed -e "s|EVENTHUB2DB_IMAGE|${EVENTHUB2DB_IMAGE}|" | \
+             sed -e "s|GRAFANA|${GRAFANA}|" | \
+             kubectl apply --namespace=${TENANT} -f -'
+  mounts:
+    - mount-kubeconfig-testing-aks
+    - mount-deployment-dir
+  user: "{user.uid}:{user.gid}"
+  entrypoint: ""
+  env:
+    - DOCKER_REGISTRY={env.DOCKER_REGISTRY}
+    - TENANT=tenant2
+    - EVENTHUB2DB_IMAGE={env.EVENTHUB2DB_IMAGE}
+    - GRAFANA={env.GRAFANA}
+  annotations:
+    description: "-> deploy eventhu2db to azure kubernetes service for tenant2"
+    tags:
+      - deploy
+
+alias=deploy-eventhubdb-all:
+  tasks:
+    - deploy-eventhubdb-tenant1
+    - deploy-eventhubdb-tenant2
+  annotations:
+    description: "[alias] deploy all eventhub2db"
+    tags:
+      - alias
 
 job=deploy-grafana-secret:
   use: image-kubectl
@@ -94,7 +142,7 @@ job=get-aks-config:
   use: image-azure-cli
   command: |
     bash -c 'rm /.kube/config;
-             az aks get-credentials --resource-group $AZURE_RESOURCE_GROUP --name $AKS_NAME'
+             az aks get-credentials --resource-group ${AZURE_RESOURCE_GROUP} --name ${AKS_NAME}'
   interactive: true
   mounts:
     - mount-kubeconfig-testing-aks
