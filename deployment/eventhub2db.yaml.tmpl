@@ -52,7 +52,7 @@ spec:
         "beta.kubernetes.io/os": linux
       containers:
         - name: eventhub2db
-          image: EVENTHUB2DB_IMAGE
+          image: TEMPLATE_VAR_EVENTHUB2DB_IMAGE
           resources:
             requests:
               cpu: 100m
@@ -128,8 +128,8 @@ metadata:
 spec:
   secretName: grafana-tls-secret
   dnsNames:
-    - GRAFANA.edgefarm.io
-  commonName: GRAFANA.edgefarm.io
+    - TEMPLATE_VAR_GRAFANA.edgefarm.io
+  commonName: TEMPLATE_VAR_GRAFANA.edgefarm.io
   issuerRef:
     name: letsencrypt-staging
     kind: ClusterIssuer
@@ -146,10 +146,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - GRAFANA.edgefarm.io
+        - TEMPLATE_VAR_GRAFANA.edgefarm.io
       secretName: grafana-tls-secret
   rules:
-    - host: GRAFANA.edgefarm.io
+    - host: TEMPLATE_VAR_GRAFANA.edgefarm.io
       http:
         paths:
           - path: /
