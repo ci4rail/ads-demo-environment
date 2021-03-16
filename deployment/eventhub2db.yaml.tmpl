@@ -16,7 +16,7 @@ spec:
         "beta.kubernetes.io/os": linux
       containers:
         - name: eventhub2db
-          image: EVENTHUB2DB_IMAGE
+          image: TEMPLATE_VAR_EVENTHUB2DB_IMAGE
           resources:
             requests:
               cpu: 100m
@@ -61,7 +61,7 @@ spec:
             - name: GF_ROUTER_LOGGING
               value: "false"
             - name: GF_SERVER_ROOT_URL
-              value: "https://grafana.edgefarm.io/TENANT/"
+              value: "https://grafana.edgefarm.io/TEMPLATE_VAR_TENANT/"
             - name: GF_SERVER_DOMAIN
               value: "edgefarm.io"
             - name: GF_SERVER_SERVE_FROM_SUB_PATH
@@ -87,7 +87,7 @@ spec:
             - name: GF_AUTH_GENERIC_OAUTH_API_URL
               value: "https://edgefarmarmin.eu.auth0.com/userinfo"
             - name: GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
-              value: contains("http://tenants"[*], 'TENANT') && 'Admin'
+              value: contains("http://tenants"[*], 'TEMPLATE_VAR_TENANT') && 'Admin'
       imagePullSecrets:
         - name: ci4rail-harbor-secret
 ---
@@ -109,18 +109,18 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-staging
-    nginx.ingress.kubernetes.io/rewrite-target: /TENANT
+    nginx.ingress.kubernetes.io/rewrite-target: /TEMPLATE_VAR_TENANT
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   tls:
     - hosts:
-        - GRAFANA.edgefarm.io
+        - TEMPLATE_VAR_GRAFANA.edgefarm.io
       secretName: grafana-tls-secret
   rules:
-    - host: GRAFANA.edgefarm.io
+    - host: TEMPLATE_VAR_GRAFANA.edgefarm.io
       http:
         paths:
-          - path: /TENANT
+          - path: /TEMPLATE_VAR_TENANT
             pathType: Prefix
             backend:
               service:
@@ -135,8 +135,8 @@ metadata:
 spec:
   secretName: grafana-tls-secret
   dnsNames:
-    - GRAFANA.edgefarm.io
-  commonName: GRAFANA.edgefarm.io
+    - TEMPLATE_VAR_GRAFANA.edgefarm.io
+  commonName: TEMPLATE_VAR_GRAFANA.edgefarm.io
   issuerRef:
     name: letsencrypt-staging
     kind: ClusterIssuer

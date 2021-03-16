@@ -51,10 +51,10 @@ job=deploy-eventhubdb-tenant1:
                                                    --from-literal=eventhubConn=${EVENTHUB_CONNECTIONSTRING} &&
 
              cat /deployment/eventhub2db.yaml.tmpl | \
-             sed -e "s|TENANT|${TENANT}|" | \
+             sed -e "s|TEMPLATE_VAR_TENANT|${TENANT}|" | \
              sed -e "s|TEMPLATE_VAR_AUTH_CLIENT_SECRET|${AUTH_CLIENT_SECRET}|" | \
-             sed -e "s|EVENTHUB2DB_IMAGE|${EVENTHUB2DB_IMAGE}|" | \
-             sed -e "s|GRAFANA|${GRAFANA}|" | \
+             sed -e "s|TEMPLATE_VAR_EVENTHUB2DB_IMAGE|${EVENTHUB2DB_IMAGE}|" | \
+             sed -e "s|TEMPLATE_VAR_GRAFANA|${GRAFANA}|" | \
              kubectl apply --namespace=${TENANT} -f -'
   mounts:
     - mount-kubeconfig-testing-aks
@@ -89,10 +89,10 @@ job=deploy-eventhubdb-tenant2:
                                                    --from-literal=eventhubConn=${EVENTHUB_CONNECTIONSTRING} &&
 
              cat /deployment/eventhub2db.yaml.tmpl | \
-             sed -e "s|TENANT|${TENANT}|" | \
+             sed -e "s|TEMPLATE_VAR_TENANT|${TENANT}|" | \
              sed -e "s|TEMPLATE_VAR_AUTH_CLIENT_SECRET|${AUTH_CLIENT_SECRET}|" | \
-             sed -e "s|EVENTHUB2DB_IMAGE|${EVENTHUB2DB_IMAGE}|" | \
-             sed -e "s|GRAFANA|${GRAFANA}|" | \
+             sed -e "s|TEMPLATE_VAR_EVENTHUB2DB_IMAGE|${EVENTHUB2DB_IMAGE}|" | \
+             sed -e "s|TEMPLATE_VAR_GRAFANA|${GRAFANA}|" | \
              kubectl apply --namespace=${TENANT} -f -'
   mounts:
     - mount-kubeconfig-testing-aks
