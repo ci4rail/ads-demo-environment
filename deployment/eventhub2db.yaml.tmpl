@@ -1,7 +1,7 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: timescaledb-pv-volume
+  name: timescaledb-TEMPLATE_VAR_TENANT-pv-volume
   labels:
     app: eventhub2db
 spec:
@@ -42,7 +42,7 @@ spec:
         app: eventhub2db
     spec:
       volumes:
-        - name: postgres-pv-claim
+        - name: timescaledb-TEMPLATE_VAR_TENANT-pv-storage
           persistentVolumeClaim:
             claimName: timescaledb-pv-claim
         - configMap:
@@ -82,7 +82,7 @@ spec:
               value: "password"
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
-              name: postgres-pv-claim
+              name: timescaledb-TEMPLATE_VAR_TENANT-pv-storage
         - name: grafana
           image: harbor.ci4rail.com/ci4rail/grafana:7.4.3
           resources:
