@@ -57,6 +57,8 @@ job=deploy-eventhubdb:
                                     --dry-run=client -o yaml | kubectl apply -f - &&
              cat /deployment/eventhub2db.yaml.tmpl | \
              sed -e "s|TEMPLATE_VAR_TENANT|${TENANT}|" | \
+             sed -e "s|TEMPLATE_VAR_OAUTH_CLIENT_ID|${OAUTH_CLIENT_ID}|" | \
+             sed -e "s|TEMPLATE_VAR_OAUTH_CLIENT_SECRET|${OAUTH_CLIENT_SECRET}|" | \
              sed -e "s|TEMPLATE_VAR_EVENTHUB2DB_IMAGE|${EVENTHUB2DB_IMAGE}|" | \
              sed -e "s|TEMPLATE_VAR_GRAFANA|${GRAFANA}|" | \
              kubectl apply --namespace=${TENANT} -f -'

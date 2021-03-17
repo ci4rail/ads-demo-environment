@@ -94,6 +94,39 @@ spec:
               memory: 256Mi
           ports:
             - containerPort: 3000
+          env:
+            - name: GF_LOG_LEVEL
+              value: "info"
+            - name: GF_ROUTER_LOGGING
+              value: "true"
+            - name: GF_SERVER_ROOT_URL
+              value: "https://grafana.edgefarm.io/TEMPLATE_VAR_TENANT/"
+            - name: GF_SERVER_DOMAIN
+              value: "edgefarm.io"
+            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+              value: "true"
+            - name: GF_AUTH_GENERIC_OAUTH_ENABLED
+              value: "true"
+            - name: GF_AUTH_GENERIC_OAUTH_TEAM_IDS
+              value: ""
+            - name: GF_AUTH_GENERIC_OAUTH_ALLOWED_ORGANIZATIONS
+              value: ""
+            - name: GF_AUTH_GENERIC_OAUTH_NAME
+              value: "Auth0"
+            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+              value: TEMPLATE_VAR_OAUTH_CLIENT_ID
+            - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+              value: TEMPLATE_VAR_OAUTH_CLIENT_SECRET
+            - name: GF_AUTH_GENERIC_OAUTH_SCOPES
+              value: "openid profile email"
+            - name: GF_AUTH_GENERIC_OAUTH_AUTH_URL
+              value: "https://edgefarm-dev.eu.auth0.com/authorize"
+            - name: GF_AUTH_GENERIC_OAUTH_TOKEN_URL
+              value: "https://edgefarm-dev.eu.auth0.com/oauth/token"
+            - name: GF_AUTH_GENERIC_OAUTH_API_URL
+              value: "https://edgefarm-dev.eu.auth0.com/userinfo"
+            - name: GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
+              value: contains("http://tenants"[*], 'TEMPLATE_VAR_TENANT') && 'Admin'
           volumeMounts:
             - mountPath: /etc/grafana/provisioning/datasources/timescaledb-datasource.yml
               name: grafana-config
@@ -141,7 +174,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-staging
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/rewrite-target: /TEMPLATE_VAR_TENANT
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   tls:
@@ -152,7 +185,7 @@ spec:
     - host: TEMPLATE_VAR_GRAFANA.edgefarm.io
       http:
         paths:
-          - path: /
+          - path: /TEMPLATE_VAR_TENANT
             pathType: Prefix
             backend:
               service:
