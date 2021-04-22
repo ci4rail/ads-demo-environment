@@ -86,11 +86,11 @@ spec:
             - name: GF_AUTH_GENERIC_OAUTH_SCOPES
               value: "openid profile email"
             - name: GF_AUTH_GENERIC_OAUTH_AUTH_URL
-              value: "https://edgefarm-dev.eu.auth0.com/authorize"
+              value: "https://edgefarm-staging.eu.auth0.com/authorize"
             - name: GF_AUTH_GENERIC_OAUTH_TOKEN_URL
-              value: "https://edgefarm-dev.eu.auth0.com/oauth/token"
+              value: "https://edgefarm-staging.eu.auth0.com/oauth/token"
             - name: GF_AUTH_GENERIC_OAUTH_API_URL
-              value: "https://edgefarm-dev.eu.auth0.com/userinfo"
+              value: "https://edgefarm-staging.eu.auth0.com/userinfo"
             - name: GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
               value: contains("http://tenants"[*], 'TEMPLATE_VAR_TENANT') && 'Admin'
           volumeMounts:
